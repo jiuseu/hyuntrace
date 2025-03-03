@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/js/upload.js"></script>
+    <script src="https://www.unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<div layout:fragment="content">
+ <div class="row mt-3">
+   <div class="col">
+     <div class="card">
+       <div class="card-header">
+         게시글 수정페이지
+       </div><!--card header end -->
+       <div class="card-body">
+         <form id="f1">
+         <div class="input-group mb-3">
+           <span class="input-group-text">게시글 번호</span>
+           <input type="text" class="form-control" name="bno" th:value="${bno}" readonly>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">제목</span>
+           <input type="text" class="form-control" name="title" value="">
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">내용</span>
+           <textarea class="form-control col-sm-5" rows="5" name="content"></textarea>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">작성자</span>
+           <input type="text" class="form-control" name="writer" value="" readonly>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">작성 날짜</span>
+           <input type="text" class="form-control" name="regDate" value="" readonly>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">최근 수정 날짜</span>
+           <input type="text" class="form-control" name="modDate" value="" readonly>
+         </div>
+           <div class="input-group mb-3">
+             <span class="input-group-text">파일</span>
+             <div class="float-end uploadHidden">
+               <button type="button" class="btn btn-primary uploadModalBtn">ADD Files</button>
+             </div>
+           </div>
+         <div class="float-end">
+          <div class="my-4">
+            <button type="button" class="btn btn-primary modifyBtn">수정 완료</button>
+            <button type="button" class="btn btn-danger removeBtn">삭제</button>
+            <button type="button" class="btn btn-secondary listBtn">목록</button>
+          </div>
+         </div>
+         </form>
+       </div><!--card body end -->
+     </div><!--card end -->
+   </div><!--col end -->
+ </div><!--row mt-3 end -->
+ <div class="row mt-3">
+  <div class="col">
+   <div class="container-fluid d-flex uploadResult" style="flex-wrap: wrap;">
+
+   </div>
+  </div><!--upload col end -->
+ </div><!--upload row end -->
+  <div class="modal uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">파일 업로드</h5>
+          <button type="button" class="btn btn-close" onclick="javascript:closeUploadModal()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="file" name="files" class="form-control" multiple>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary uploadBtn">업로드</button>
+          <button type="button" class="btn btn-danger closeUploadBtn" onclick="javascript:closeUploadModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- uploadModal end-->
+</div><!--layout fragment content end -->
+<script layout:fragment="script" th:inline="javascript">
+
+  document.addEventListener("DOMContentLoaded", function(e) {
+
+     const callModify = async () => {
+
+        const bno = /*[[${bno}]]*/ null
+        const url = `/api/board/read/${bno}`
+        const res = await axios.get(url)
+        const boardDTO = res.data
+
+        document.querySelector('[name="title"]').value = boardDTO.title
+        document.querySelector('[name="content"]').value = boardDTO.content
+        document.querySelector('[name="writer"]').value = boardDTO.writer
+        document.querySelector('[name="regDate"]').value = boardDTO.regDate
+        document.querySelector('[name="modDate"]').value = boardDTO.modDate
+
+        if(boardDTO.fileNames != null && boardDTO.fileNames.length > 0){
+
+        boardDTO.fileNames.map(fileName =>{
+        const [uuid, ...fileParts] = fileName.split("_");
+        const originalFileName = fileParts.join("_");
+
+        document.querySelector(".uploadResult").innerHTML +=  `<div class="card col-4">
+        <div class="card-header d-flex justify-content-center">${originalFileName}
+        <button class="btn-sm btn-danger" onclick="javascript:removeFile('${uuid}','${originalFileName}',this)"> X
+        </button></div>
+        <div class="card-body d-flex justify-content-center">
+        <img src="/api/upload/view/s_${fileName}" data-src="${fileName}"></div>
+        </div>`
+
+        }
+
+        )}//end if
+
+     }
+     callModify()
+
+})//DOM 마지막
+
+  const removeFileList = []
+  const fileNames = []
+  const uploadModal = new bootstrap.Modal(document.querySelector(".uploadModal"))
+  const uploadResult = document.querySelector(".uploadResult")
+
+  document.querySelector(".uploadModalBtn").addEventListener("click", function(e) {
+     uploadModal.show()
+  })
+
+
+  //파일 업로드 버튼 이벤트
+  document.querySelector(".uploadBtn").addEventListener("click", function(e) {
+
+   const formObj = new FormData();
+    const fileInput = document.querySelector("input[name='files']")
+    const files = fileInput.files
+    if (files.length === 0) {
+    alert("파일을 선택하세요.");
+    return;
+    }
+
+    for(let i = 0; i < files.length; i++){
+      formObj.append("files",files[i])
+    }
+    uploadToServer(formObj).then(result => {
+      for(const uploadResult of result){
+        showUploadFile(uploadResult)
+      }
+       uploadModal.hide()
+    }).catch(err => {
+      console.log(err)
+    })
+
+  },false)
+
+  function showUploadFile({uuid,fileName,link}){
+    const str = `<div class="card col-4">
+    <div class="card-header d-flex justify-content-center">
+    ${fileName}
+    <button type="button" class="btn-sm btn-danger" onclick="javascript:removeFile('${uuid}','${fileName}',this)">X</button>
+    </div>
+    <div class="card-body d-flex justify-content-center">
+    <img src="/api/upload/view/${link}" data-src="${uuid}_${fileName}">
+    </div>
+    </div>`
+    uploadResult.innerHTML += str
+ }
+
+  //섬네일 닫기 창
+  function removeFile(uuid,fileName, obj){
+    if(!confirm("파일을 삭제하시겠습니까?")){
+       return
+    }
+   const targetDiv = obj.closest(".card")
+   removeFileList.push({uuid,fileName})
+   targetDiv.remove()
+  }
+
+  function fileNameAppend(){
+
+    const files = uploadResult.querySelectorAll("img")
+
+    for(let i = 0; i < files.length; i++){
+     const file = files[i]
+     const imgLink = file.getAttribute("data-src")
+     fileNames.push(imgLink)
+    }
+ }
+
+ function removeFileListDelete(){
+   console.log(removeFileList)
+   removeFileList.forEach(({uuid,fileName}) => {
+
+     removeFileToServer({uuid,fileName})
+   })
+  }
+
+ function uploadFileDelete(){
+   if(fileNames != null){
+   fileNames.forEach(fileName => {
+     const [uuid, ...fileParts] = fileName.split("_");
+     const originalFileName = fileParts.join("_");
+     removeFileToServer({uuid,originalFileName})
+   })
+ }
+}
+
+function closeUploadModal() {
+    uploadModal.hide()
+  }
+
+    document.querySelector(".modifyBtn").addEventListener("click", function(e) {
+
+    fileNameAppend()
+    removeFileListDelete()
+
+    const bno = /*[[${bno}]]*/ null
+    const title = document.querySelector('[name="title"]').value
+    const content = document.querySelector('[name="content"]').value
+    const boardDTO = {title, content,fileNames}
+
+    const url = `/api/board/modify/${bno}`
+
+    axios.put(url,boardDTO).then(res => { // 매개변수  차이지? 트러블슈터2
+    self.location = `/board/read?bno=${bno}`
+    }).catch(err => {
+      console.error(err)
+    })
+  },false)
+
+  document.querySelector(".removeBtn").addEventListener("click", function(e) {
+
+  fileNameAppend()
+
+  const bno = /*[[${bno}]]*/ null
+  const boardDTO = {bno,fileNames}
+
+  const url = `/api/board/remove/${bno}`
+  axios.delete(url,{data:boardDTO}).then(res => {
+    uploadFileDelete()
+    removeFileListDelete()
+    alert("삭제가 되었습니다.")
+    self.location = `/board/list`
+  }).catch(err => {
+    console.error(err)
+  })
+  },false)
+
+  document.querySelector(".listBtn").addEventListener("click", function(e) {
+   self.location = `/board/list`
+  },false)
+</script>
+</html>

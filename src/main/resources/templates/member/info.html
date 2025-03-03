@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://www.unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<div layout:fragment="content">
+  <div class="row mt-3">
+    <div class="col">
+     <div class="card">
+       <div class="card-header">
+         <h5>개인 정보</h5>
+       </div><!--card header end-->
+       <div class="card-body">
+         <div class="input-group mb-3">
+          <span class="input-group-text">아이디</span>
+          <input class="form-control" id="mid" value="" readonly>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">이메일</span>
+           <input class="form-control" id="email" value="" readonly>
+         </div>
+         <div class="input-group mb-3">
+           <span class="input-group-text">자동 로그인 설정</span>
+           <input class="form-control" id="social" value="" readonly><!--아직 안함 -->
+         </div>
+         <div class="float-end">
+          <div class="my-4">
+            <button type="button" class="btn btn-primary listBtn" onclick="location.href='/board/list'">게시판 목록</button>
+            <button type="button" class="btn btn-secondary modBtn">정보 수정</button>
+          </div>
+         </div>
+       </div><!--card body end-->
+     </div><!--card end-->
+    </div><!--col end-->
+  </div><!--row mt-3 end-->
+
+    <div class="modal modInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <span class="modal-title">본인 확인</span>
+              <button type="button" class="btn btn-close" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+              <div class="input-group mb-3">
+               <span class="input-group-text">비밀번호</span>
+               <input type="password" class="form-control" name="password">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary modalSubmitBtn">제출</button>
+              <button type="button" class="btn btn-danger closeBtn" onclick="closeModal()">닫기</button>
+            </div>
+          </div>
+        </div>
+    </div><!--modal end-->
+</div><!--layout fragment content end-->
+
+<script layout:fragment="script" th:inline="javascript">
+
+  document.addEventListener("DOMContentLoaded", function (e) {
+    axios.get(`/api/member/info`).then(res => {
+       const member = res.data
+
+       document.querySelector('#mid').value = member.mid
+       document.querySelector('#email').value = member.email
+       if(member.social){
+         document.querySelector('#social').value = "자동 로그인 활성화"
+       }else{
+         document.querySelector('#social').value = "자동 로그인 비활성화"
+       }
+
+    }).catch(err => {
+
+    })
+
+  const modal = new bootstrap.Modal(document.querySelector(".modInfoModal"))
+  const mpw = document.querySelector("input[name='password']")
+
+  document.querySelector(".modBtn").addEventListener("click", function(e) {
+    modal.show()
+  },false)
+
+window.closeModal = function() {
+     const mpwInput = document.querySelector("input[name='password']");
+        if (mpwInput) {
+            mpwInput.value = ''; // 비밀번호 입력 초기화
+        }
+    modal.hide()
+  }
+
+
+ document.querySelector(".modalSubmitBtn").addEventListener("click", function(e) {
+  const mpw = document.querySelector("input[name='password']").value;
+
+  const dto = {mpw: mpw}
+
+  axios.post(`/api/member/memberInfoAuth`, dto,{
+    headers : {
+      'Content-Type':'application/json'
+    }
+  }).then(res => {
+    console.log("성공");
+    console.log(res.data);
+    self.location = `/member/modinfo`;
+  }).catch(err => {
+    console.log("실패");
+       if(err.response){
+           let errMsg = Object.entries(err.response.data)
+           .map( ([field, message]) => `${field} : ${message}`)
+           alert(errMsg)}
+  });
+}, false);
+
+
+
+  }) //DOM 끝
+
+
+</script>
+</html>

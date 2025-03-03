@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="https://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Simple Sidebar - Start Bootstrap Template</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body class="align-middle">
+<div class="container-fluid d-flex justify-content-center" style="height : 100vh">
+    <div class="card align-self-center">
+        <div class="card-header">
+            <span th:if="${param.logout != null}">로그아웃</span>
+            <span th:if="${param.logout == null}">로그인 페이지</span>
+        </div>
+        <div class="card-body">
+            <!-- 로그아웃 메시지 -->
+            <h1 th:if="${param.logout != null}">로그아웃되었습니다.</h1>
+            <p th:if="${param.logout != null}" >잠시 후 메인으로 돌아갑니다...</p>
+            <!-- 로그인 폼 -->
+            <form id="loginForm" method="post" th:if="${param.logout == null}">
+                <div class="input-group mb-3">
+                    <div class="input-group-text">아이디</div>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="USER-ID" required>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-text">비밀번호</div>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="PASSWORD" required>
+                </div>
+
+                <div class="float-end">
+                    <div class="my-4">
+                        <button type="submit" class="btn btn-primary loginBtn">로그인</button>
+                        <button type="reset" class="btn btn-secondary resetBtn">초기화</button>
+                    </div>
+                </div>
+            </form>
+            <div id="errorMessage" class="text-danger text-center mt-2" style="display: none;">
+                로그인 실패: 아이디 또는 비밀번호를 확인하세요.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMessage = document.getElementById("errorMessage");
+
+        if (urlParams.get("error")) {
+            errorMessage.style.display = "block"; // 로그인 창 내부에서 메시지 표시
+        }
+
+        // 로그아웃 후 처리
+        if (urlParams.get("logout")) {
+        console.log("로그아웃 처리됨, 리디렉션 시작");
+
+        // 3초 후 게시판 목록으로 리디렉션
+        setTimeout(function() {
+            console.log("작동중.....");
+            window.location.href = "/board/list";  // 게시판 목록으로 리디렉션
+        }, 3000); // 3초 후 리디렉션
+    }
+    })
+</script>
+</body>
+</html>

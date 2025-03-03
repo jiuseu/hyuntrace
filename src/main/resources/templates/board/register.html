@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+<head>
+  <meta charset="UTF-8">
+  <title>Board Register</title>
+  <script src="/js/upload.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<div layout:fragment="content">
+  <div class="row mt-3">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          게시글 작성
+        </div><!--card header end-->
+        <div class="card-body">
+          <form id="registerForm">
+            <div class="input-group mb-3">
+              <span class="input-group-text">제목</span>
+              <input type="text" name="title" class="form-control" value="">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">내용</span>
+              <textarea class="form-control col-sm-5" rows="5" name="content"></textarea>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">이름</span>
+              <input type="text" name="writer" class="form-control" value="">
+            </div>
+            <div class="input-group mb-3">
+             <span class="input-group-text">파일</span> 
+             <div class="float-end uploadHidden">
+              <button type="button" class="btn btn-primary uploadFileBtn">ADD Files</button>
+             </div>
+            </div> 
+            <div class="float-end">
+              <div class="my-4">
+                <button type="button" class="btn btn-primary listBtn">목록</button>
+                <button type="button" class="btn btn-secondary registerBtn">작성</button>
+              </div>
+            </div>
+          </form>
+        </div><!--card body end-->
+      </div><!--card end-->
+    </div><!--col end-->
+  </div><!--row end-->
+  <!-- 첨부파일 섬네일을 보여줄 부분-->
+   <div class="row mt-3">
+    <div class="col">
+     <div class="container-fluid d-flex uploadResult" style="flex-wrap: wrap;">
+    
+     </div> 
+    </div>
+   </div><!--uploadResult end-->
+
+  <div class="modal uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+           <h5 class="modal-title">파일 업로드</h5>
+           <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="file" name="files" class="form-control" multiple>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary uploadBtn">업로드</button>
+          <button type="button" class="btn btn-danger closeUploadBtn">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- uploadModal end-->
+</div><!--layout fragment content end-->
+<script layout:fragment="script" th:inline="javascript">
+
+
+
+  document.querySelector(".listBtn").addEventListener("click", function() {
+    self.location = `/board/list`
+  },false)
+
+  document.querySelector(".registerBtn").addEventListener("click", function() {
+    const title = document.querySelector('[name="title"]').value
+    const content = document.querySelector('[name="content"]').value
+    const writer = document.querySelector('[name="writer"]').value
+    const uploadFiles = uploadResult.querySelectorAll("img")
+
+      const fileNames = []
+
+   for(let i = 0; i < uploadFiles.length; i++){
+     const uploadFile = uploadFiles[i]
+     const imgLink = uploadFile.getAttribute("data-src")
+
+     fileNames.push(imgLink)
+   }
+
+    const boardDTO = {title,content,writer,fileNames}
+    const url = `/api/board/register`
+
+    axios.post(url,boardDTO).then(res => {
+      alert(res.data+"번 게시글 작성이 완료 되었습니다.")
+      self.location = `/board/list`
+    }).catch(err => {
+      if (err.response) {
+            let errorMessages = Object.entries(err.response.data)
+                .map(([field, message]) => `${field}: ${message}`)
+                .join("\n");
+            alert(errorMessages);  // 모든 에러 메시지를 줄바꿈해서 alert 출력
+        } else {
+            alert("오류가 발생했습니다.");
+        }
+    })
+  },false)
+
+  const uploadModal = new bootstrap.Modal(document.querySelector(".uploadModal"))
+
+  document.querySelector(".uploadFileBtn").addEventListener("click", function(e){
+    e.preventDefault()
+    e.stopPropagation()
+    uploadModal.show()
+  },false)
+
+  document.querySelector(".uploadBtn").addEventListener("click", function(e){ 
+     
+    const formObj = new FormData();
+    const fileInput = document.querySelector("input[name='files']")
+    const files = fileInput.files
+    
+    for(let i = 0; i < files.length; i++){
+      formObj.append("files",files[i])
+    }
+
+    uploadToServer(formObj).then(result => {
+      for(const uploadResult of result){
+        showUploadFile(uploadResult)
+      }
+       uploadModal.hide()
+    }).catch(err => {
+      console.log(err)
+    })
+  },false)
+
+const uploadResult = document.querySelector(".uploadResult")
+
+function showUploadFile({uuid,fileName,link}){
+  const str = `<div class="card col-4">
+    <div class="card-header d-flex justify-content-center">${fileName}
+      <button class="btn-sm btn-danger" onclick="javascript:removeFile('${uuid}','${fileName}',this)"> X
+        </button></div>
+    <div class="card-body d-flex justify-content-center">
+    <img src="/api/upload/view/${link}" data-src="${uuid}_${fileName}"></div>
+    </div>`
+    uploadResult.innerHTML += str
+}
+
+function removeFile(uuid,fileName,obj){
+  const targetDiv = obj.closest(".card")
+
+  removeFileToServer(uuid,fileName).then(data => {
+    targetDiv.remove()
+  })
+}
+
+</script>
+</html>

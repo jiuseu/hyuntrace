@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>개인 정보 수정</title>
+</head>
+<div layout:fragment="content">
+<div class="container-fluid d-flex justify-content-center" style="height: 100vh">
+  <div class="row mt-3">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+           정보 수정
+        </div><!--card header end-->
+        <div class="card-body">
+         <form id="modForm">
+             <div class="input-group mb-3">
+                 <span class="input-group-text">아이디</span>
+                 <input type="email" class="form-control" name="mid" value="" readonly>
+             </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text">이메일</span>
+            <input type="email" class="form-control" name="email" value="">
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text">새로운 비밀번호</span>
+            <input type="password" class="form-control" name="mpw">
+          </div>
+             <div class="input-group mb-3">
+                 <span class="input-group-text">비밀번호 다시 확인</span>
+                 <input type="password" class="form-control" name="mpwCheck">
+             </div>
+             <div class="float-end">
+               <div class="my-4">
+                <button type="button" class="btn btn-primary modBtn">수정</button>
+                   <button type="button" class="btn btn-danger dangerBtn">탈퇴</button>
+                <button type="button" class="btn btn-secondary backBtn" onclick="location.href='/member/info'">뒤로가기</button>
+               </div>
+             </div>
+         </form>
+        </div>
+      </div><!--card end-->
+    </div><!--col end-->
+  </div><!--row end-->
+    <div class="modal deleteModal" tabindex="-1">
+      <div class="modal-dialog">
+       <div class="modal-content">
+         <div class="modal-header">
+           <span class="modal-title">정말 탈퇴하시겠습니까?</span>
+           <button type="button" class="btn btn-close" aria-label="Close" onclick="closeModal()"></button>
+         </div>
+         <div class="modal-body">
+          <div class="input-group mb-3">
+            <span class="input-group-text">비밀번호 확인</span>
+            <input type="password" class="form-control" name="modalMpw">
+          </div>
+         </div>
+         <div class="modal-footer">
+           <button type="button" class="btn btn-danger deleteBtn">탈퇴</button>
+           <button type="button" class="btn btn-primary closeBtn" onclick="closeModal()">닫기</button>
+         </div>
+       </div>
+      </div>
+    </div><!--deleteModal content -->
+</div><!--layout fragment content -->
+<script src="http://www.unpkg.com/axios/dist/axios.min.js"></script>
+</div><!--layout fragment content end-->
+<script layout:fragment="script" th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function (e) {
+    axios.get(`/api/member/info`).then(res => {
+       const member = res.data
+
+       document.querySelector('input[name="mid"]').value = member.mid
+       document.querySelector('input[name="email"]').value = member.email
+
+    }).catch(err => {
+       console.error("페이지 로드 실패")
+       console.error(err)
+
+    }) //axios get 끝 ---------------------------------------------------------
+
+    document.querySelector(".modBtn").addEventListener("click", function (e) {
+
+     const mid = document.querySelector('input[name="mid"]').value
+     const mpw = document.querySelector("input[name='mpw']").value
+     const mpwCheck = document.querySelector("input[name='mpwCheck']").value
+     const email = document.querySelector("input[name='email']").value
+
+     const memberModifyDTO = {mpw:mpw,mpwCheck:mpwCheck,email:email}
+
+     axios.put(`/api/member/modify/${mid}`, memberModifyDTO,{
+       headers : {
+         'Content-Type' : 'application/json'
+       }
+     }).then(res => {
+
+        alert("회원 정보가 성공적으로 수정되었습니다!");
+        location.href = "/member/info"; // 수정 후 페이지 이동
+
+     }).catch(err => {
+        console.error("개인 정보 수정 실패")
+         if (err.response && err.response.data.error) {
+          alert(err.response.data.error); // 서버에서 받은 에러 메시지 표시
+           } else {
+          alert("수정 중 오류가 발생했습니다.");
+          }
+     })
+  },false) // 개인 정보 수정 -----------------------------------------------
+
+  const modal = new bootstrap.Modal(document.querySelector(".deleteModal"))
+
+  document.querySelector(".dangerBtn").addEventListener("click", function(e) {
+     modal.show()
+  },false)
+
+
+  window.closeModal = function() {
+      const mpwInput = document.querySelector("input[name='modalMpw']");
+      mpwInput.value = ''; // 비밀번호 초기화
+      modal.hide(); // 모달 닫기
+  }
+
+  document.querySelector('.deleteBtn').addEventListener("click", function(e) {
+
+    const mid = document.querySelector('input[name="mid"]').value
+    const mpw = document.querySelector("input[name='modalMpw']").value
+
+    console.log(mid)
+    console.log(mpw)
+
+    const memberDTO = {mid:mid,mpw:mpw}
+
+    axios.delete(`/api/member/deleteMember/${mid}`,{data:memberDTO,headers : {
+     'Content-Type':'application/json'
+    }}).then(res => {
+
+          alert("탈퇴 완료했습니다.")
+          self.location = `/board/list`
+
+    }).catch(err => {
+
+    if(err.response){
+    let errorMsg = Object.entries(err.response.data)
+    .map(([field,msg]) => `${field} : ${message}`).join(',')
+    alert(errorMsg)
+    }
+    })
+
+  },false)
+
+  })//DOM 끝
+
+
+
+</script>
+</html>

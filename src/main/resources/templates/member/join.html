@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="https://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://www.unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<div layout:fragment="content">
+ <div class="row d-flex align-items-center justify-content-center" style="min-height: 80vh;" >
+   <div class="col-md-6">
+     <div class="card">
+      <div class="card-header">
+        회원 가입
+      </div>
+      <div class="card-body">
+        <form id="registerForm" method="post">
+          <div class="input-group mb-4">
+            <span class="input-group-text">아이디</span>
+            <input type="text" class="form-control" name="mid">
+          </div>
+          <div class="input-group mb-4">
+            <span class="input-group-text">비밀번호</span>
+            <input type="password" class="form-control" name="mpw">
+          </div>
+          <div class="input-group mb-4">
+            <span class="input-group-text">이메일</span>
+            <input type="email" class="form-control" name="email">
+          </div>
+          <div class="float-end">
+            <div class="my-4">
+              <button type="submit" class="btn btn-primary registerBtn">제출</button>
+              <button type="reset" class="btn btn-secondary clearBtn">리셋</button>
+            </div>
+          </div>
+        </form>
+      </div>
+     </div><!--card end -->
+   </div><!--col end -->
+ </div><!--row end -->
+</div><!--layout fragment content end -->
+<script layout:fragment="script" th:inline="javascript">
+  document.querySelector(".registerBtn").addEventListener("click", function(e) {
+
+     e.preventDefault()
+
+     const form = document.querySelector("#registerForm")
+     const formData = new FormData(form)
+     const memberJoinDTO = Object.fromEntries(formData.entries())
+
+     memberJoinDTO.social = false
+     memberJoinDTO.del = false
+
+     console.log(memberJoinDTO)
+
+     axios.post(`/api/member/join`,memberJoinDTO).then(res => {
+         localStorage.setItem("accessToken",res.data.tokenData.accessToken)
+         localStorage.setItem("accessToken",res.data.tokenData.refreshToken)
+         self.location = `/member/login`
+     }).catch(err => {
+         if(err.response){
+           let errMsg = Object.entries(err.response.data)
+           .map( ([field, message]) => `${field} : ${message}`).join("\n")
+           alert(errMsg)}
+     })
+  },false)
+</script>
+</html>
