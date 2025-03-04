@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board,Long>, BoardSearch {
-    @EntityGraph(attributePaths = {"imageSet"})
+    @EntityGraph(attributePaths = {"imageSet","recommendationList"})
     @Query("select b from Board b where b.bno =:bno")
     Optional<Board> findByIdWithImages(Long bno);
+
 }

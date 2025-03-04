@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -25,6 +26,13 @@ public class Board extends BaseEntity{
     private String content;
 
     private String writer;
+
+
+    @OneToMany(mappedBy = "board",
+               cascade = {CascadeType.ALL},
+               fetch = FetchType.LAZY,
+               orphanRemoval = true)
+    private List<Recommendation> recommendationList;
 
     @OneToMany(mappedBy = "board", //BoardImage의 baord 변수에 매핑 mappedBy하면 좋은 점 자세한건 따로 기록 필요
                cascade = {CascadeType.ALL}, //상위 엔티티(Board)의 영향을 하위 엔티티(BoardImage)를 어떻게 할지 관리
@@ -70,5 +78,25 @@ public class Board extends BaseEntity{
 
     public void changeTitle(String title){
         this.title = title;
+    }
+
+    // 추가된 필드: 추천 수와 비추천 수
+//    private Long upVoteCount = 0L;
+//    private Long downVoteCount = 0L;
+//
+//    public void addUpVote() {
+//        this.upVoteCount++;
+//    }
+//
+//    public void addDownVote() {
+//        this.downVoteCount++;
+//    }
+
+    public Long upVoteCount(){
+        return this.recommendationList.stream().filter(r -> r.getRecommendType() == RecommendType.UpVote).count();
+    }
+
+    public Long downVoteCount(){
+        return this.recommendationList.stream().filter(r -> r.getRecommendType() == RecommendType.DownVote).count();
     }
 }

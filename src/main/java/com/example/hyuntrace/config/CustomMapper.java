@@ -18,7 +18,11 @@ import java.util.stream.Collectors;
 public interface CustomMapper {
 
     @Mapping(target = "imageSet", ignore = true)
+    @Mapping(target = "recommendationList", ignore = true)
     Board toBoardEntity(BoardDTO boardDTO);
+
+//    @Mapping(target = "upVoteCount", expression = "java(new Board().upVoteCount())")
+//    @Mapping(target = "downVoteCount", expression = "java(new Board().downVoteCount())")
     @Mapping(target = "fileNames", expression = "java(new BoardDTO().setMapperFileNames(board))")
     BoardDTO toBoardDTO(Board board);
     @Mapping(source = "bno", target = "board.bno")

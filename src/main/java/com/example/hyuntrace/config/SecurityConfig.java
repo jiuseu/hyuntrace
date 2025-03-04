@@ -71,7 +71,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(form -> form.requestMatchers("/member/login","/member/join"
                         ,"api/member/join","/board/list","/api/board/listAll","/api/upload/view/**","/error").permitAll()
                 .requestMatchers("/board/**","/api/board/**","api/reply/**"
-                        ,"/member/**","/api/member/**").hasRole("USER"));
+                        ,"/member/**","/api/member/**","/api/recommend/**").hasRole("USER"));
 //                .requestMatchers().authenticated()); //본인 정보 인증
         //CSRF 토큰 비활성화
         http.csrf(form -> form.disable());

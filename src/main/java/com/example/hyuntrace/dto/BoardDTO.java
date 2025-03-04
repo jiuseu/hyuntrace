@@ -1,6 +1,7 @@
 package com.example.hyuntrace.dto;
 
 import com.example.hyuntrace.domain.Board;
+import com.example.hyuntrace.domain.Recommendation;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
@@ -32,6 +33,7 @@ public class BoardDTO {
     private String writer;
 
     private List<String> fileNames;
+
 
     public List<String> setMapperFileNames(Board board){
         return board.getImageSet().stream()

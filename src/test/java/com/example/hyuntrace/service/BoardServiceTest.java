@@ -3,6 +3,7 @@ package com.example.hyuntrace.service;
 import com.example.hyuntrace.dto.BoardDTO;
 import com.example.hyuntrace.dto.PageRequestDTO;
 import com.example.hyuntrace.dto.PageResponseDTO;
+import com.example.hyuntrace.dto.RecommendResponseDTO;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class BoardServiceTest {
 
     @Autowired
     private BoardService boardService;
+    @Autowired
+    private RecommendService recommendService;
 
     @Test
     public void registerTest(){
@@ -38,7 +41,18 @@ public class BoardServiceTest {
     public void readTest(){
         Long bno = 25L;
         BoardDTO boardDTO = boardService.read(bno);
-        log.info(boardDTO);
+        RecommendResponseDTO responseDTO = recommendService.voteCounts(bno);
+
+        log.info("추천비추천 없는 데이터 : "+boardDTO);
+        log.info("추천비추천 없는 데이터 : "+responseDTO);
+
+        Long bno2 = 109L;
+        BoardDTO boardDTO2 = boardService.read(bno2);
+        RecommendResponseDTO responseDTO2 = recommendService.voteCounts(bno2);
+
+        log.info("추천비추천 있는 데이터 : "+boardDTO2);
+        log.info("추천비추천 는 데이터: "+responseDTO2);
+
     }
 
     @Test
