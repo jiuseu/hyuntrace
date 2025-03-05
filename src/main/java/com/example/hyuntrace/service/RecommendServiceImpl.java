@@ -10,6 +10,7 @@ import com.example.hyuntrace.dto.RecommendResponseDTO;
 import com.example.hyuntrace.repository.BoardRepository;
 import com.example.hyuntrace.repository.MemberRepository;
 import com.example.hyuntrace.repository.RecommendRepository;
+import com.example.hyuntrace.security.handler.RecommendSocketHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +28,7 @@ public class RecommendServiceImpl implements RecommendService {
     private final RecommendRepository recommendRepository;
     private final MemberRepository memberRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RecommendSocketHandler recommendSocketHandler;
 
     private static final String REDIS_KEY_PREFIX = "voteCounts:";  // Redis 키 접두사
     private static final long CACHE_EXPIRATION = 10; // 캐시 만료 시간 (10분)
@@ -69,6 +71,8 @@ public class RecommendServiceImpl implements RecommendService {
         redisTemplate.delete(redisKey);
         log.info(" Redis 캐시 삭제: {}", redisKey);
 
+        RecommendResponseDTO dto = voteCounts(bno);
+        recommendSocketHandler.sendUpdate(dto);
      }
 
     @Override

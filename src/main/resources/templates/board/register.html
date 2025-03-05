@@ -27,7 +27,7 @@
             </div>
             <div class="input-group mb-3">
               <span class="input-group-text">이름</span>
-              <input type="text" name="writer" class="form-control" value="">
+              <input type="text" name="writer" class="form-control" value="" readonly>
             </div>
             <div class="input-group mb-3">
              <span class="input-group-text">파일</span> 
@@ -77,90 +77,117 @@
 
 
 
-  document.querySelector(".listBtn").addEventListener("click", function() {
-    self.location = `/board/list`
-  },false)
+ document.addEventListener('DOMContentLoaded', function() {
+    console.log("게시글 등록 스크립트 로드됨");
 
-  document.querySelector(".registerBtn").addEventListener("click", function() {
-    const title = document.querySelector('[name="title"]').value
-    const content = document.querySelector('[name="content"]').value
-    const writer = document.querySelector('[name="writer"]').value
-    const uploadFiles = uploadResult.querySelectorAll("img")
+       fetch('/api/member/info')
+              .then(response => response.json())
+              .then(data => {
+                 console.log("currentUser : "+data.mid)
+                 document.querySelector("input[name='writer']").value = data.mid
+              });
 
-      const fileNames = []
 
-   for(let i = 0; i < uploadFiles.length; i++){
-     const uploadFile = uploadFiles[i]
-     const imgLink = uploadFile.getAttribute("data-src")
-
-     fileNames.push(imgLink)
-   }
-
-    const boardDTO = {title,content,writer,fileNames}
-    const url = `/api/board/register`
-
-    axios.post(url,boardDTO).then(res => {
-      alert(res.data+"번 게시글 작성이 완료 되었습니다.")
-      self.location = `/board/list`
-    }).catch(err => {
-      if (err.response) {
-            let errorMessages = Object.entries(err.response.data)
-                .map(([field, message]) => `${field}: ${message}`)
-                .join("\n");
-            alert(errorMessages);  // 모든 에러 메시지를 줄바꿈해서 alert 출력
-        } else {
-            alert("오류가 발생했습니다.");
+    document.addEventListener("click", function(e) {
+        // 리스트 버튼 클릭
+        if (e.target.classList.contains("listBtn")) {
+            console.log("리스트 버튼 클릭됨");
+            self.location = `/board/list`;
         }
-    })
-  },false)
 
-  const uploadModal = new bootstrap.Modal(document.querySelector(".uploadModal"))
+        // 등록 버튼 클릭
+        if (e.target.classList.contains("registerBtn")) {
+            console.log("게시글 등록 버튼 클릭됨");
 
-  document.querySelector(".uploadFileBtn").addEventListener("click", function(e){
-    e.preventDefault()
-    e.stopPropagation()
-    uploadModal.show()
-  },false)
+            const title = document.querySelector('[name="title"]').value;
+            const content = document.querySelector('[name="content"]').value;
+            const writer = document.querySelector('[name="writer"]').value;
+            const uploadFiles = document.querySelector(".uploadResult").querySelectorAll("img");
 
-  document.querySelector(".uploadBtn").addEventListener("click", function(e){ 
-     
-    const formObj = new FormData();
-    const fileInput = document.querySelector("input[name='files']")
-    const files = fileInput.files
-    
-    for(let i = 0; i < files.length; i++){
-      formObj.append("files",files[i])
-    }
+            const fileNames = [];
+            for (let i = 0; i < uploadFiles.length; i++) {
+                const uploadFile = uploadFiles[i];
+                const imgLink = uploadFile.getAttribute("data-src");
+                fileNames.push(imgLink);
+            }
 
-    uploadToServer(formObj).then(result => {
-      for(const uploadResult of result){
-        showUploadFile(uploadResult)
-      }
-       uploadModal.hide()
-    }).catch(err => {
-      console.log(err)
-    })
-  },false)
+            const boardDTO = { title, content, writer, fileNames };
+            const url = `/api/board/register`;
 
-const uploadResult = document.querySelector(".uploadResult")
+            axios.post(url, boardDTO)
+                .then(res => {
+                    alert(res.data + "번 게시글 작성이 완료되었습니다.");
+                    self.location = `/board/list`;
+                })
+                .catch(err => {
+                    if (err.response) {
+                        let errorMessages = Object.entries(err.response.data)
+                            .map(([field, message]) => `${field}: ${message}`)
+                            .join("\n");
+                        alert(errorMessages);
+                    } else {
+                        alert("오류가 발생했습니다.");
+                    }
+                });
+        }
 
-function showUploadFile({uuid,fileName,link}){
-  const str = `<div class="card col-4">
-    <div class="card-header d-flex justify-content-center">${fileName}
-      <button class="btn-sm btn-danger" onclick="javascript:removeFile('${uuid}','${fileName}',this)"> X
-        </button></div>
-    <div class="card-body d-flex justify-content-center">
-    <img src="/api/upload/view/${link}" data-src="${uuid}_${fileName}"></div>
-    </div>`
-    uploadResult.innerHTML += str
+        // 파일 업로드 모달 열기
+        if (e.target.classList.contains("uploadFileBtn")) {
+            console.log("파일 업로드 버튼 클릭됨");
+            e.preventDefault();
+            e.stopPropagation();
+            uploadModal.show();
+        }
+
+        // 파일 업로드 버튼 클릭
+        if (e.target.classList.contains("uploadBtn")) {
+            console.log("파일 업로드 버튼 클릭됨");
+
+            const formObj = new FormData();
+            const fileInput = document.querySelector("input[name='files']");
+            const files = fileInput.files;
+
+            for (let i = 0; i < files.length; i++) {
+                formObj.append("files", files[i]);
+            }
+
+            uploadToServer(formObj)
+                .then(result => {
+                    for (const uploadResult of result) {
+                        showUploadFile(uploadResult);
+                    }
+                    uploadModal.hide();
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        }
+    });
+});
+
+// 파일 업로드 관련 함수
+const uploadModal = new bootstrap.Modal(document.querySelector(".uploadModal"));
+const uploadResult = document.querySelector(".uploadResult");
+
+function showUploadFile({ uuid, fileName, link }) {
+    const str = `
+        <div class="card col-4">
+            <div class="card-header d-flex justify-content-center">
+                ${fileName}
+                <button class="btn-sm btn-danger" onclick="removeFile('${uuid}', '${fileName}', this)"> X </button>
+            </div>
+            <div class="card-body d-flex justify-content-center">
+                <img src="/api/upload/view/${link}" data-src="${uuid}_${fileName}">
+            </div>
+        </div>`;
+    uploadResult.innerHTML += str;
 }
 
-function removeFile(uuid,fileName,obj){
-  const targetDiv = obj.closest(".card")
-
-  removeFileToServer(uuid,fileName).then(data => {
-    targetDiv.remove()
-  })
+function removeFile(uuid, fileName, obj) {
+    const targetDiv = obj.closest(".card");
+    removeFileToServer(uuid, fileName).then(() => {
+        targetDiv.remove();
+    });
 }
 
 </script>

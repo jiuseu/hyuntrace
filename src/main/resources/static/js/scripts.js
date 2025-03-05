@@ -9,6 +9,9 @@
 
 window.addEventListener('DOMContentLoaded', event => {
 
+     // 현재 페이지 URL 가져오기
+      const currentPath = window.location.pathname;
+
     // Toggle the side navigation
     const sidebarToggle = document.body.querySelector('#sidebarToggle');
     if (sidebarToggle) {
@@ -33,6 +36,7 @@ window.addEventListener('DOMContentLoaded', event => {
       const viewInfoBtn = document.getElementById('viewInfoBtn');
       const registerBtn = document.querySelector('.registerBtn')
 
+     if (currentPath !== "/member/join") {
        fetch('/api/member/info')
               .then(response => response.json())
               .then(data => {
@@ -50,7 +54,7 @@ window.addEventListener('DOMContentLoaded', event => {
                 }
               });
 
-
+         }
       // 로그인 버튼 클릭 이벤트
       loginBtn.addEventListener('click', function() {
 

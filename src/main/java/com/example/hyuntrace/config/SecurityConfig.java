@@ -69,9 +69,11 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")); // 쿠키 삭제
 
         http.authorizeHttpRequests(form -> form.requestMatchers("/member/login","/member/join"
-                        ,"api/member/join","/board/list","/api/board/listAll","/api/upload/view/**","/error").permitAll()
+                        ,"/api/member/join","/board/list","/api/board/listAll","/api/upload/view/**"
+                        ,"/error","/ws-recommend","/api/recommend/**").permitAll()
                 .requestMatchers("/board/**","/api/board/**","api/reply/**"
-                        ,"/member/**","/api/member/**","/api/recommend/**").hasRole("USER"));
+                        ,"/member/modinfo","/member/info","/api/member/info","/api/member/modify/**"
+                        ,"/api/member/deleteMember/**","/api/memberInfoAuth","api/upload/**").hasRole("USER"));
 //                .requestMatchers().authenticated()); //본인 정보 인증
         //CSRF 토큰 비활성화
         http.csrf(form -> form.disable());

@@ -32,8 +32,7 @@ public class MemberRestController {
     private final CustomMapper customMapper;
 
     @PostMapping(value = "/join", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String,Object>> joinPost(@Valid @RequestBody MemberJoinDTO memberJoinDTO,
-                                                       HttpServletResponse response)  {
+    public ResponseEntity<Map<String,Object>> joinPost(@Valid @RequestBody MemberJoinDTO memberJoinDTO)  {
 
         log.info("============================== Member Join ..... 회원가입 처리 중.....==============================");
         log.info(memberJoinDTO);

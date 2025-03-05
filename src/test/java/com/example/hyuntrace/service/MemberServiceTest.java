@@ -20,9 +20,9 @@ public class MemberServiceTest {
     public void memberJoinTest() throws MemberService.MidExistException {
 
         MemberJoinDTO memberJoinDTO = MemberJoinDTO.builder()
-                .mid("testUser00")
+                .mid("user2")
                 .mpw("1234")
-                .email("test1234@test.com")
+                .email("user2@test.com")
                 .social(false)
                 .del(false)
                 .build();
