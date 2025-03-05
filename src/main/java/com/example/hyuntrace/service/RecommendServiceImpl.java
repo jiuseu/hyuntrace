@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Log4j2
@@ -25,6 +26,10 @@ public class RecommendServiceImpl implements RecommendService {
     private final BoardRepository boardRepository;
     private final RecommendRepository recommendRepository;
     private final MemberRepository memberRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String REDIS_KEY_PREFIX = "voteCounts:";  // Redis 키 접두사
+    private static final long CACHE_EXPIRATION = 10; // 캐시 만료 시간 (10분)
 
     @Override
     public void addVote(RecommendRequestDTO recommendRequestDTO) { //추천 비추천 등록
@@ -57,11 +62,32 @@ public class RecommendServiceImpl implements RecommendService {
 
         // 추천/비추천을 DB에 저장
         recommendRepository.save(recommendation);
+        log.info(" 추천/비추천 저장 완료 - BoardId: {}", bno);
+
+        // Redis 캐시 삭제 (추천/비추천 수치가 변경되었으니)
+        String redisKey = REDIS_KEY_PREFIX + bno;
+        redisTemplate.delete(redisKey);
+        log.info(" Redis 캐시 삭제: {}", redisKey);
 
      }
 
     @Override
     public RecommendResponseDTO voteCounts(Long bno){//추천 비추천 개수 조회
+
+        String redisKey = REDIS_KEY_PREFIX + bno;
+        // **성능 측정 시작**
+        long start = System.nanoTime();
+
+        //redis에서 추천/비추천 개수 조회
+        RecommendResponseDTO cachedData = (RecommendResponseDTO) redisTemplate.opsForValue().get(redisKey);
+        log.info("redis의 추천/비추천 데이터 cacheData: {}",cachedData);
+
+        if (cachedData != null) {
+            long redisEnd = System.nanoTime();
+            long redisTime = redisEnd - start;
+            log.info("redis에서 추천/비추천 데이터 가져옴 - BoardId: {} (시간: {}ms)", bno, redisTime / 1_000_000);
+            return cachedData;
+        }
 
         // 게시글을 가져와 추천/비추천 수 바로 조회
         Board board = boardRepository.findById(bno)
@@ -75,6 +101,11 @@ public class RecommendServiceImpl implements RecommendService {
                     .downVote(downVoteCount)
                     .build();
 
+        // 조회한 데이터를 Redis에 캐싱 (10분 만료 설정)
+        redisTemplate.opsForValue().set(redisKey, dto, CACHE_EXPIRATION, TimeUnit.MINUTES);
+        long dbEnd = System.nanoTime();
+        long time = dbEnd - start;
+        log.info("처음 db에서 불러오기 - Key: {} (TTL: 10분) (시간: {}ms)", redisKey, time / 1_000_000);
         return dto;
     }
 

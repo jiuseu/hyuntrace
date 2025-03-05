@@ -1,11 +1,11 @@
 package com.example.hyuntrace.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class RecommendResponseDTO {
 

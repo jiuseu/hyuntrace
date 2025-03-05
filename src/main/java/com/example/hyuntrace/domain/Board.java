@@ -14,7 +14,7 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = {"imageSet","recommendationList"})
 public class Board extends BaseEntity{
 
     @Id

@@ -240,6 +240,7 @@
 <!--                const { upVote, downVote } = res.data;-->
 <!--                likeCount.textContent = upVote;-->
 <!--                dislikeCount.textContent = downVote;-->
+
             //추천 비추천 개수 보여주는 함수
             fetch(`/api/recommend/view/${bno}`)
                 .then(response => response.json())

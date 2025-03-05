@@ -8,6 +8,9 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.util.StopWatch;
 
 @SpringBootTest
 @Log4j2
@@ -26,7 +29,7 @@ public class RecommendServiceTest {
         RecommendRequestDTO dto = RecommendRequestDTO.builder()
                 .boardId(bno)
                 .memberId(mid)
-                .voteType(RecommendType.UpVote)
+                .voteType("UpVote")
                 .build();
 
         recommendService.addVote(dto);
@@ -37,4 +40,5 @@ public class RecommendServiceTest {
         log.info("추천 비추천 DTO : "+responseDTO);
 
     }
+
 }
