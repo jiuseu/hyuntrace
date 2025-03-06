@@ -46,12 +46,15 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
 
-        //AuthenticationManger 설정
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
+        // AuthenticationManager 설정
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authenticationManagerBuilder
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder())
-                .and()
-                .build();
+                .passwordEncoder(passwordEncoder());
+
+        return authenticationManagerBuilder.build();
     }
 
     @Bean
@@ -73,7 +76,7 @@ public class SecurityConfig {
                         ,"/error","/ws-recommend","/api/recommend/**").permitAll()
                 .requestMatchers("/board/**","/api/board/**","api/reply/**"
                         ,"/member/modinfo","/member/info","/api/member/info","/api/member/modify/**"
-                        ,"/api/member/deleteMember/**","/api/memberInfoAuth","api/upload/**").hasRole("USER"));
+                        ,"/api/member/deleteMember/**","/api/member/memberInfoAuth","api/upload/**").hasRole("USER"));
 //                .requestMatchers().authenticated()); //본인 정보 인증
         //CSRF 토큰 비활성화
         http.csrf(form -> form.disable());

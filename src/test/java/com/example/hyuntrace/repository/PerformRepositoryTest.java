@@ -40,7 +40,7 @@ public class PerformRepositoryTest {
             stopWatch.start("DB Test " + (i + 1));
             testDbPerformance(bno);
             stopWatch.stop();
-            totalDbTime += stopWatch.getLastTaskTimeMillis();
+            totalDbTime += stopWatch.getTotalTimeMillis();  // Deprecated된 메서드 대신 getTotalTimeMillis 사용
         }
 
         // 3. Redis 성능 측정
@@ -49,13 +49,14 @@ public class PerformRepositoryTest {
             stopWatch.start("Redis Test " + (i + 1));
             testRedisPerformance(bno);
             stopWatch.stop();
-            totalRedisTime += stopWatch.getLastTaskTimeMillis();
+            totalRedisTime += stopWatch.getTotalTimeMillis();  // Deprecated된 메서드 대신 getTotalTimeMillis 사용
         }
 
         // 결과 출력
         System.out.println("Average time for DB test: " + (totalDbTime / testCount) + "ms");
         System.out.println("Average time for Redis test: " + (totalRedisTime / testCount) + "ms");
     }
+
 
     private void testDbPerformance(Long bno) {
         long start = System.currentTimeMillis();
