@@ -78,13 +78,15 @@ public class SecurityConfig {
         //CSRF 토큰 비활성화
         http.csrf(form -> form.disable());
 
-//        http.rememberMe(form -> form.key("12345678")
-//                .userDetailsService(userDetailsService)
-//                .tokenRepository(persistentTokenRepository())
-//                .tokenValiditySeconds(60 * 60 * 24 * 30));
+        //자동 로그인
+        http.rememberMe(form -> form.key("12345678")
+                .userDetailsService(userDetailsService)
+                .tokenRepository(persistentTokenRepository())
+                .tokenValiditySeconds(60 * 60 * 24 * 30));
+
         //http.exceptionHandling(form -> form.accessDeniedHandler(accessDeniedHandler()));
-//        http.oauth2Login(form -> form.loginPage("/member/login")
-//                .successHandler(authenticationSuccessHandler()));
+        http.oauth2Login(form -> form.loginPage("/member/login")
+                .successHandler(authenticationSuccessHandler()));
         http.sessionManagement(form -> form.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         return http.build();
     }
