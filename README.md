@@ -2,6 +2,10 @@
 
 <br><br>
 
+[개인 기록 블로그](https://jiuseu.github.io) 
+
+<br><br>
+
 ## 목차
 
 <br>
